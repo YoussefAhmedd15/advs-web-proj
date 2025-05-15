@@ -12,7 +12,7 @@
                         <p class="text-muted">Join us to start booking movies</p>
                     </div>
 
-                    <form method="POST" action="{{ route('register') }}">
+                    <form method="POST" action="{{ route('auth.register') }}">
                         @csrf
                         <div class="mb-3">
                             <label for="name" class="form-label">Full Name</label>
@@ -93,7 +93,7 @@
                     <div class="text-center mt-4">
                         <p class="mb-0">
                             Already have an account? 
-                            <a href="{{ route('login') }}" class="text-decoration-none">Sign in</a>
+                            <a href="{{ route('auth.login') }}" class="text-decoration-none">Sign in</a>
                         </p>
                     </div>
                 </div>
