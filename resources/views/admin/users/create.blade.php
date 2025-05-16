@@ -1,35 +1,40 @@
 @extends('layouts.app')
 
-@section('title', 'Register - Cinema Management System')
+@section('title', 'Add New User - Admin Dashboard')
 
 @section('content')
+<div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card shadow-sm">
-                <div class="card-body p-5">
-                    <div class="text-center mb-4">
-                        <h4>Create Account</h4>
-                        <p class="text-muted">Join us to start booking movies</p>
-                    </div>
-
-                    <form method="POST" action="{{ route('auth.register') }}">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i> Back to Users
+                </a>
+                <h2>Add New User</h2>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">User Information</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ route('admin.users.store') }}" method="POST">
                         @csrf
+                        
                         <div class="mb-3">
-                            <label for="name" class="form-label">Full Name</label>
+                            <label for="name" class="form-label">Name</label>
                             <input type="text" 
                                    class="form-control @error('name') is-invalid @enderror" 
                                    id="name" 
                                    name="name" 
                                    value="{{ old('name') }}" 
-                                   required 
-                                   autofocus>
+                                   required>
                             @error('name')
                                 <div class="invalid-feedback">
                                     {{ $message }}
                                 </div>
                             @enderror
                         </div>
-
+                        
                         <div class="mb-3">
                             <label for="email" class="form-label">Email Address</label>
                             <input type="email" 
@@ -44,7 +49,7 @@
                                 </div>
                             @enderror
                         </div>
-
+                        
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
                             <input type="password" 
@@ -58,7 +63,7 @@
                                 </div>
                             @enderror
                         </div>
-
+                        
                         <div class="mb-3">
                             <label for="password_confirmation" class="form-label">Confirm Password</label>
                             <input type="password" 
@@ -67,48 +72,30 @@
                                    name="password_confirmation" 
                                    required>
                         </div>
-
+                        
                         <div class="mb-3 form-check">
                             <input type="checkbox" 
                                    class="form-check-input" 
                                    id="is_admin" 
                                    name="is_admin" 
-                                   value="1">
+                                   {{ old('is_admin') ? 'checked' : '' }}>
                             <label class="form-check-label" for="is_admin">
-                                Register as Admin
+                                Admin User
                             </label>
                         </div>
-
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" 
-                                   class="form-check-input @error('terms') is-invalid @enderror" 
-                                   id="terms" 
-                                   name="terms" 
-                                   required>
-                            <label class="form-check-label" for="terms">
-                                I agree to the <a href="#" class="text-decoration-none">Terms of Service</a> and 
-                                <a href="#" class="text-decoration-none">Privacy Policy</a>
-                            </label>
-                            @error('terms')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">Create Account</button>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Create User</button>
                         </div>
                     </form>
-
-                    <div class="text-center mt-4">
-                        <p class="mb-0">
-                            Already have an account? 
-                            <a href="{{ route('auth.login') }}" class="text-decoration-none">Sign in</a>
-                        </p>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
+@endsection
+
+@section('styles')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
 @endsection 

@@ -6,9 +6,15 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ route('admin.movies.index') }}" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i> Back to Movies
+                </a>
+                <h2>Add New Movie</h2>
+            </div>
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Add New Movie</h5>
+                    <h5 class="mb-0">Movie Information</h5>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('admin.movies.store') }}" method="POST">
@@ -120,4 +126,8 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('styles')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
 @endsection 

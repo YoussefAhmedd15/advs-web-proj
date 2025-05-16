@@ -25,6 +25,14 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
+            
+            // Update last login timestamp
+            $user = User::find(Auth::id());
+            if ($user) {
+                $user->last_login_at = now();
+                $user->save();
+            }
+            
             return redirect()->intended('dashboard');
         }
 
@@ -50,6 +58,7 @@ class AuthController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'is_admin' => $request->has('is_admin'),
         ]);
 
         Auth::login($user);

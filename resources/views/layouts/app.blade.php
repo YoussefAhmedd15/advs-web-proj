@@ -1,3 +1,6 @@
+@php
+use Illuminate\Support\Facades\Auth;
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -48,7 +51,11 @@
                         </li>
                     @else
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
+                            @if(Auth::user()->is_admin)
+                                <a class="nav-link" href="{{ route('admin.dashboard') }}">Admin Dashboard</a>
+                            @else
+                                <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
+                            @endif
                         </li>
                         <li class="nav-item">
                             <form method="POST" action="{{ route('auth.logout') }}" class="d-inline">

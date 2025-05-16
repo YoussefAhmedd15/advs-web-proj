@@ -4,11 +4,18 @@
 
 @section('content')
 <div class="container py-5">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+        <h2>Manage Movies</h2>
+    </div>
+
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Manage Movies</h5>
+            <h5 class="mb-0">All Movies</h5>
             <a href="{{ route('admin.movies.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Add Movie
+                <i class="bi bi-plus-lg"></i> Add Movie
             </a>
         </div>
         <div class="card-body">
@@ -43,8 +50,8 @@
                                 <td>
                                     <div class="btn-group">
                                         <a href="{{ route('admin.movies.edit', $movie['id']) }}" 
-                                           class="btn btn-sm btn-outline-primary">
-                                            Edit
+                                           class="btn btn-sm btn-outline-primary me-2">
+                                            <i class="bi bi-pencil"></i> Edit
                                         </a>
                                         <form action="{{ route('admin.movies.destroy', $movie['id']) }}" 
                                               method="POST" 
@@ -54,7 +61,7 @@
                                             <button type="submit" 
                                                     class="btn btn-sm btn-outline-danger"
                                                     onclick="return confirm('Are you sure you want to delete this movie?')">
-                                                Delete
+                                                <i class="bi bi-trash"></i> Delete
                                             </button>
                                         </form>
                                     </div>
@@ -71,4 +78,8 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('styles')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
 @endsection 

@@ -7,14 +7,20 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SetupController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\MovieController as AdminMovieController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Middleware\AdminMiddleware;
 
 // Public Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/movies', [MovieController::class, 'index'])->name('movies.index');
 Route::get('/movies/search', [MovieController::class, 'search'])->name('movies.search');
 Route::get('/movies/{movie}', [MovieController::class, 'show'])->name('movies.show');
+
+// Setup Route (temporary, remove after use)
+Route::get('/setup/create-admin', [SetupController::class, 'createAdmin']);
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
@@ -42,7 +48,8 @@ Route::middleware('auth')->group(function () {
 });
 
 // Admin Routes
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'dashboard'])->name('dashboard');
     Route::resource('movies', AdminMovieController::class);
+    Route::resource('users', AdminUserController::class)->except(['show']);
 });
