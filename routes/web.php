@@ -24,10 +24,10 @@ Route::get('/setup/create-admin', [SetupController::class, 'createAdmin']);
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('auth.login');
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('auth.register');
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::get('login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('login', [AuthController::class, 'login']);
+    Route::get('register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('register', [AuthController::class, 'register']);
     Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('auth.forgot-password');
     Route::post('/forgot-password', [AuthController::class, 'sendResetLink']);
     Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('auth.reset-password');
@@ -36,15 +36,20 @@ Route::middleware('guest')->group(function () {
 
 // Authenticated Routes
 Route::middleware('auth')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
+    Route::post('logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::get('/bookings/create', [BookingController::class, 'create'])->name('booking.create');
-    Route::post('/bookings', [BookingController::class, 'store'])->name('booking.store');
-    Route::get('/bookings/{booking}', [BookingController::class, 'show'])->name('booking.show');
-    Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->name('booking.destroy');
-    Route::delete('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('booking.cancel');
+    
+    // Booking Routes
+    Route::prefix('bookings')->name('bookings.')->group(function () {
+        Route::get('/showtimes/{showtime}/seats', [BookingController::class, 'showSeatSelection'])->name('seats');
+        Route::post('/', [BookingController::class, 'store'])->name('store');
+        Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
+        Route::get('/{booking}/confirmation', [BookingController::class, 'showConfirmation'])->name('confirmation');
+        Route::delete('/{booking}', [BookingController::class, 'destroy'])->name('destroy');
+        Route::delete('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
+    });
 });
 
 // Admin Routes

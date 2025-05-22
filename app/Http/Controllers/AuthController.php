@@ -8,10 +8,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password as PasswordRules;
 
 class AuthController extends Controller
 {
-    public function showLoginForm()
+    public function showLogin()
     {
         return view('auth.login');
     }
@@ -23,7 +24,7 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
             
             // Update last login timestamp
@@ -33,7 +34,7 @@ class AuthController extends Controller
                 $user->save();
             }
             
-            return redirect()->intended('dashboard');
+            return redirect()->intended(route('movies.index'));
         }
 
         return back()->withErrors([
@@ -41,29 +42,31 @@ class AuthController extends Controller
         ])->onlyInput('email');
     }
 
-    public function showRegistrationForm()
+    public function showRegister()
     {
         return view('auth.register');
     }
 
     public function register(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'phone' => ['required', 'string', 'max:20'],
+            'password' => ['required', 'confirmed', PasswordRules::defaults()],
         ]);
 
         $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'is_admin' => $request->has('is_admin'),
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'password' => Hash::make($request->password),
+            'role' => 'user',
         ]);
 
         Auth::login($user);
 
-        return redirect()->route('dashboard');
+        return redirect()->route('movies.index');
     }
 
     public function showForgotPasswordForm()
@@ -115,8 +118,10 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/');
+
+        return redirect()->route('login');
     }
 } 

@@ -2,10 +2,10 @@
 use Illuminate\Support\Facades\Auth;
 @endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>@yield('title', 'Cinema Management System')</title>
@@ -16,17 +16,19 @@ use Illuminate\Support\Facades\Auth;
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- Core CSS -->
     <link rel="stylesheet" href="{{ asset('css/core.css') }}">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    @yield('styles')
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ route('home') }}">
                 <i class="fas fa-film me-2"></i>Cinema
@@ -35,33 +37,38 @@ use Illuminate\Support\Facades\Auth;
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('home') }}">Home</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('movies.index') }}">Movies</a>
                     </li>
+                </ul>
+                <ul class="navbar-nav">
                     @guest
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('auth.login') }}">Login</a>
+                            <a class="nav-link" href="{{ route('login') }}">Login</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('auth.register') }}">Register</a>
+                            <a class="nav-link" href="{{ route('register') }}">Register</a>
                         </li>
                     @else
-                        <li class="nav-item">
-                            @if(Auth::user()->is_admin)
-                                <a class="nav-link" href="{{ route('admin.dashboard') }}">Admin Dashboard</a>
-                            @else
-                                <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
-                            @endif
-                        </li>
-                        <li class="nav-item">
-                            <form method="POST" action="{{ route('auth.logout') }}" class="d-inline">
-                                @csrf
-                                <button type="submit" class="nav-link border-0 bg-transparent">Logout</button>
-                            </form>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                {{ Auth::user()->name }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{{ route('dashboard') }}">Dashboard</a></li>
+                                <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
                         </li>
                     @endguest
                 </ul>
@@ -75,40 +82,21 @@ use Illuminate\Support\Facades\Auth;
     </main>
 
     <!-- Footer -->
-    <footer>
+    <footer class="bg-dark text-light py-4 mt-5">
         <div class="container">
             <div class="row">
-                <div class="col-md-4">
-                    <h5>About Us</h5>
-                    <p>Your premier destination for the latest movies and cinematic experiences.</p>
+                <div class="col-md-6">
+                    <h5>Cinema Management System</h5>
+                    <p class="mb-0">Your ultimate movie booking experience</p>
                 </div>
-                <div class="col-md-4">
-                    <h5>Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="{{ route('home') }}">Home</a></li>
-                        <li><a href="{{ route('movies.index') }}">Movies</a></li>
-                        <li><a href="#">About</a></li>
-                        <li><a href="#">Contact</a></li>
-                    </ul>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">&copy; {{ date('Y') }} All rights reserved.</p>
                 </div>
-                <div class="col-md-4">
-                    <h5>Connect With Us</h5>
-                    <div class="social-links">
-                        <a href="#" class="me-3"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="me-3"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="me-3"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-youtube"></i></a>
-                    </div>
-                </div>
-            </div>
-            <hr class="my-4">
-            <div class="text-center">
-                <p class="mb-0">&copy; {{ date('Y') }} Cinema Management System. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
-    <!-- Scripts -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     @yield('scripts')
 </body>

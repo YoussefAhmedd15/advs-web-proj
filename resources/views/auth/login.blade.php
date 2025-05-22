@@ -1,133 +1,73 @@
-@extends('layouts.app')
-
-@section('title', 'Login - Cinema Management System')
+@extends('layouts.guest')
 
 @section('content')
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card shadow-lg">
-                <div class="card-body p-5">
-                    <h2 class="text-center mb-4">Login</h2>
-
-                    @if (session('status'))
-                        <div class="alert alert-success" role="alert">
-                            {{ session('status') }}
-                        </div>
-                    @endif
-
-                    <form method="POST" action="{{ route('auth.login') }}">
-                        @csrf
-
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email Address</label>
-                            <input type="email" 
-                                   class="form-control @error('email') is-invalid @enderror" 
-                                   id="email" 
-                                   name="email" 
-                                   value="{{ old('email') }}" 
-                                   required 
-                                   autofocus>
-                            @error('email')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" 
-                                   class="form-control @error('password') is-invalid @enderror" 
-                                   id="password" 
-                                   name="password" 
-                                   required>
-                            @error('password')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" 
-                                   class="form-check-input" 
-                                   id="remember" 
-                                   name="remember">
-                            <label class="form-check-label" for="remember">
-                                Remember me
-                            </label>
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                Login
-                            </button>
-                        </div>
-
-                        <div class="text-center mt-4">
-                            <a href="{{ route('auth.forgot-password') }}" class="text-decoration-none">
-                                Forgot your password?
-                            </a>
-                        </div>
-                    </form>
-
-                    <hr class="my-4">
-
-                    <div class="text-center">
-                        <p class="mb-0">Don't have an account?</p>
-                        <a href="{{ route('auth.register') }}" class="btn btn-outline-primary mt-2">
-                            Create Account
-                        </a>
-                    </div>
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Sign in to your account
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Or
+                <a href="{{ route('register') }}" class="font-medium text-blue-600 hover:text-blue-500">
+                    create a new account
+                </a>
+            </p>
+        </div>
+        <form class="mt-8 space-y-6" action="{{ route('login') }}" method="POST">
+            @csrf
+            <div class="rounded-md shadow-sm -space-y-px">
+                <div>
+                    <label for="email" class="sr-only">Email address</label>
+                    <input id="email" name="email" type="email" required 
+                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm @error('email') border-red-500 @enderror"
+                        placeholder="Email address" value="{{ old('email') }}">
+                    @error('email')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
+                    <label for="password" class="sr-only">Password</label>
+                    <input id="password" name="password" type="password" required
+                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm @error('password') border-red-500 @enderror"
+                        placeholder="Password">
+                    @error('password')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
-        </div>
+
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <input id="remember_me" name="remember" type="checkbox"
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label for="remember_me" class="ml-2 block text-sm text-gray-900">
+                        Remember me
+                    </label>
+                </div>
+
+                <div class="text-sm">
+                    <a href="#" class="font-medium text-blue-600 hover:text-blue-500">
+                        Forgot your password?
+                    </a>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit"
+                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <svg class="h-5 w-5 text-blue-500 group-hover:text-blue-400" xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd"
+                                d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    Sign in
+                </button>
+            </div>
+        </form>
     </div>
 </div>
-@endsection
-
-@section('styles')
-<style>
-.card {
-    border: none;
-    border-radius: var(--border-radius-lg);
-}
-
-.form-control {
-    padding: 0.75rem 1rem;
-    border-radius: var(--border-radius);
-    border: 1px solid var(--gray-300);
-}
-
-.form-control:focus {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
-}
-
-.btn {
-    padding: 0.75rem 1.5rem;
-    font-weight: var(--font-weight-medium);
-}
-
-.btn-primary {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-
-.btn-primary:hover {
-    background-color: var(--gray-800);
-    border-color: var(--gray-800);
-}
-
-.btn-outline-primary {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-
-.btn-outline-primary:hover {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-</style>
 @endsection 

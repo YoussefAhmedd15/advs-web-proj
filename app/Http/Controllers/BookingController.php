@@ -2,7 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
+use App\Models\Movie;
+use App\Models\Screen;
+use App\Models\Seat;
+use App\Models\Showtime;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class BookingController extends Controller
 {
@@ -53,27 +60,75 @@ class BookingController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'movie_id' => ['required'],
-            'showtime_id' => ['required'],
-            'seats' => ['required', 'json'],
+            'showtime_id' => 'required|exists:showtimes,id',
+            'seat_number' => 'required|string',
+            'customer_name' => 'required|string|max:255',
+            'customer_email' => 'required|email|max:255',
+            'customer_phone' => 'required|string|max:20',
         ]);
 
-        // In a real application, you would create a booking here
-        // For this demo, we'll just redirect to dashboard with a success message
-        return redirect()->route('dashboard')->with('success', 'Booking successful!');
+        $booking = Booking::create([
+            'user_id' => Auth::id(),
+            'showtime_id' => $validated['showtime_id'],
+            'seat_number' => $validated['seat_number'],
+            'customer_name' => $validated['customer_name'],
+            'customer_email' => $validated['customer_email'],
+            'customer_phone' => $validated['customer_phone'],
+            'status' => 'confirmed'
+        ]);
+
+        return redirect()->route('bookings.confirmation', $booking)
+            ->with('success', 'Booking confirmed successfully!');
     }
 
-    public function show($id)
+    public function show(Booking $booking)
     {
-        // In a real application, you would fetch the booking details here
-        // For this demo, we'll just redirect to dashboard
-        return redirect()->route('dashboard');
+        if ($booking->user_id !== Auth::id()) {
+            abort(403);
+        }
+        return view('bookings.show', compact('booking'));
     }
 
-    public function cancel($id)
+    public function showMovieSelection()
     {
-        // In a real application, you would cancel the booking here
-        // For this demo, we'll just redirect to dashboard with a success message
-        return redirect()->route('dashboard')->with('success', 'Booking cancelled successfully!');
+        $movies = Movie::with('showtimes')->get();
+        return view('bookings.movies', compact('movies'));
+    }
+
+    public function showShowtimeSelection(Movie $movie, Showtime $showtime)
+    {
+        return view('bookings.showtimes', compact('movie', 'showtime'));
+    }
+
+    public function showSeatSelection(Showtime $showtime)
+    {
+        $bookedSeats = $showtime->bookings()->pluck('seat_number')->toArray();
+        return view('bookings.seats', compact('showtime', 'bookedSeats'));
+    }
+
+    public function showConfirmation(Booking $booking)
+    {
+        if ($booking->user_id !== Auth::id()) {
+            abort(403);
+        }
+        return view('bookings.confirmation', compact('booking'));
+    }
+
+    public function destroy(Booking $booking)
+    {
+        if ($booking->user_id !== Auth::id()) {
+            abort(403);
+        }
+        $booking->delete();
+        return redirect()->route('dashboard')->with('success', 'Booking cancelled successfully.');
+    }
+
+    public function cancel(Booking $booking)
+    {
+        if ($booking->user_id !== Auth::id()) {
+            abort(403);
+        }
+        $booking->update(['status' => 'cancelled']);
+        return redirect()->route('dashboard')->with('success', 'Booking cancelled successfully.');
     }
 } 
