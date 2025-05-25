@@ -7,13 +7,30 @@ use Illuminate\Http\Request;
 
 class MovieController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $movies = Movie::where('is_active', true)
-                      ->orderBy('created_at', 'desc')
-                      ->get();
-        
-        return view('movies.index', compact('movies'));
+        $query = Movie::where('is_active', true);
+
+        // Handle genre filter
+        if ($request->input('genre') && $request->input('genre') !== 'All Genres') {
+            $query->where('genre', $request->input('genre'));
+        }
+
+        // Handle search query
+        $searchQuery = $request->input('query');
+        if ($searchQuery) {
+            $query->where(function($q) use ($searchQuery) {
+                $q->where('title', 'like', '%' . $searchQuery . '%')
+                  ->orWhere('synopsis', 'like', '%' . $searchQuery . '%');
+            });
+        }
+
+        $movies = $query->orderBy('created_at', 'desc')->paginate(9);
+
+        // Get unique genres for the filter dropdown
+        $genres = Movie::distinct()->pluck('genre')->filter()->values();
+
+        return view('movies.index', compact('movies', 'genres'));
     }
 
     public function show(Movie $movie)
@@ -29,17 +46,6 @@ class MovieController extends Controller
 
     public function search(Request $request)
     {
-        $query = $request->input('query');
-        
-        $movies = Movie::where('is_active', true)
-                      ->where(function($q) use ($query) {
-                          $q->where('title', 'like', "%{$query}%")
-                            ->orWhere('genre', 'like', "%{$query}%")
-                            ->orWhere('synopsis', 'like', "%{$query}%");
-                      })
-                      ->orderBy('created_at', 'desc')
-                      ->get();
-        
-        return view('movies.index', compact('movies', 'query'));
+        return $this->index($request);
     }
 } 
