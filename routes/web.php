@@ -54,6 +54,16 @@ Route::middleware('auth')->group(function () {
 // Admin Routes
 Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'dashboard'])->name('dashboard');
-    Route::resource('movies', AdminMovieController::class);
+    
+    // Movie Routes
+    Route::prefix('movies')->name('movies.')->group(function () {
+        Route::get('/', [AdminMovieController::class, 'index'])->name('index');
+        Route::get('/create', [AdminMovieController::class, 'create'])->name('create');
+        Route::post('/', [AdminMovieController::class, 'store'])->name('store');
+        Route::get('/{movie}/edit', [AdminMovieController::class, 'edit'])->name('edit');
+        Route::put('/{movie}', [AdminMovieController::class, 'update'])->name('update');
+        Route::delete('/{movie}', [AdminMovieController::class, 'destroy'])->name('destroy');
+    });
+    
     Route::resource('users', AdminUserController::class)->except(['show']);
 });

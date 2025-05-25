@@ -11,6 +11,20 @@
         <h2>Manage Movies</h2>
     </div>
 
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">All Movies</h5>
@@ -35,25 +49,25 @@
                         @forelse($movies as $movie)
                             <tr>
                                 <td>
-                                    <img src="{{ $movie['poster'] }}" 
+                                    <img src="{{ $movie->poster }}" 
                                          style="width: 50px; height: 75px; object-fit: cover;"
-                                         alt="{{ $movie['title'] }}">
+                                         alt="{{ $movie->title }}">
                                 </td>
-                                <td>{{ $movie['title'] }}</td>
-                                <td>{{ $movie['genre'] }}</td>
-                                <td>{{ $movie['duration'] }} min</td>
+                                <td>{{ $movie->title }}</td>
+                                <td>{{ $movie->genre }}</td>
+                                <td>{{ $movie->duration }} min</td>
                                 <td>
-                                    <span class="badge bg-{{ $movie['status_color'] }}">
-                                        {{ $movie['status'] }}
+                                    <span class="badge {{ $movie->is_active ? 'bg-success' : 'bg-danger' }}">
+                                        {{ $movie->is_active ? 'Active' : 'Inactive' }}
                                     </span>
                                 </td>
                                 <td>
                                     <div class="btn-group">
-                                        <a href="{{ route('admin.movies.edit', $movie['id']) }}" 
+                                        <a href="{{ route('admin.movies.edit', $movie->id) }}" 
                                            class="btn btn-sm btn-outline-primary me-2">
                                             <i class="bi bi-pencil"></i> Edit
                                         </a>
-                                        <form action="{{ route('admin.movies.destroy', $movie['id']) }}" 
+                                        <form action="{{ route('admin.movies.destroy', $movie->id) }}" 
                                               method="POST" 
                                               class="d-inline">
                                             @csrf
@@ -74,6 +88,12 @@
                         @endforelse
                     </tbody>
                 </table>
+
+                @if($movies->hasPages())
+                    <div class="mt-4">
+                        {{ $movies->links() }}
+                    </div>
+                @endif
             </div>
         </div>
     </div>

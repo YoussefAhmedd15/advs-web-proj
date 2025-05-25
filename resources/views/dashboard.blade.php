@@ -86,7 +86,7 @@
                                             <span class="ms-2">${{ number_format($booking['amount'], 2) }}</span>
                                         </div>
                                         @if($booking['can_cancel'])
-                                            <form action="{{ route('booking.cancel', $booking['id']) }}" 
+                                            <form action="{{ route('bookings.cancel', $booking['id']) }}" 
                                                   method="POST" 
                                                   class="d-inline">
                                                 @csrf

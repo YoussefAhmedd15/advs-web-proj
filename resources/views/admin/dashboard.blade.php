@@ -1,3 +1,7 @@
+@php
+use App\Models\User;
+@endphp
+
 @extends('layouts.app')
 
 @section('title', 'Admin Dashboard - Cinema Management System')
@@ -86,6 +90,7 @@
                         </div>
                         <i class="bi bi-film fs-1 opacity-50"></i>
                     </div>
+                    <div class="mt-2 small">{{ $activeMovies }} active movies</div>
                 </div>
             </div>
         </div>
@@ -95,10 +100,11 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h5 class="card-title">Today's Shows</h5>
-                            <h2 class="mb-0">{{ $todayShows }}</h2>
+                            <h2 class="mb-0">{{ $todayShowtimes->count() }}</h2>
                         </div>
                         <i class="bi bi-calendar-day fs-1 opacity-50"></i>
                     </div>
+                    <div class="mt-2 small">{{ now()->format('F j, Y') }}</div>
                 </div>
             </div>
         </div>
@@ -112,6 +118,7 @@
                         </div>
                         <i class="bi bi-ticket-perforated fs-1 opacity-50"></i>
                     </div>
+                    <div class="mt-2 small">${{ number_format($totalRevenue, 2) }} revenue</div>
                 </div>
             </div>
         </div>
@@ -121,10 +128,78 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h5 class="card-title">Total Users</h5>
-                            <h2 class="mb-0">{{ \App\Models\User::count() }}</h2>
+                            <h2 class="mb-0">{{ $totalUsers }}</h2>
                         </div>
                         <i class="bi bi-people fs-1 opacity-50"></i>
                     </div>
+                    <div class="mt-2 small">Excluding {{ User::where('is_admin', true)->count() }} admins</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Top Movies -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Top Movies</h5>
+                </div>
+                <div class="card-body">
+                    @if($topMovies->isEmpty())
+                        <p class="text-center">No booking data available yet</p>
+                    @else
+                        @foreach($topMovies as $movie)
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ $movie->poster }}" class="me-3" 
+                                         style="width: 50px; height: 75px; object-fit: cover;">
+                                    <div>
+                                        <div class="fw-bold">{{ $movie->title }}</div>
+                                        <div class="small text-muted">{{ $movie->genre }}</div>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-primary">{{ $movie->booking_count }} bookings</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
+        </div>
+        
+        <!-- Today's Showtimes -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Today's Showtimes</h5>
+                </div>
+                <div class="card-body">
+                    @if($todayShowtimes->isEmpty())
+                        <p class="text-center">No showtimes scheduled for today</p>
+                    @else
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Movie</th>
+                                        <th>Time</th>
+                                        <th>Screen</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($todayShowtimes as $showtime)
+                                        <tr>
+                                            <td>{{ $showtime->movie->title }}</td>
+                                            <td>{{ $showtime->time }}</td>
+                                            <td>{{ $showtime->screen->name }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -146,33 +221,35 @@
                             <th>Movie</th>
                             <th>Showtime</th>
                             <th>Seats</th>
+                            <th>Amount</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($recentBookings as $booking)
                             <tr>
-                                <td>#{{ $booking['id'] }}</td>
-                                <td>{{ $booking['user_name'] ?? 'N/A' }}</td>
+                                <td>#{{ $booking->id }}</td>
+                                <td>{{ $booking->user->name ?? 'N/A' }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <img src="{{ $booking['movie_poster'] }}" 
+                                        <img src="{{ $booking->showtime->movie->poster }}" 
                                              class="me-2" 
                                              style="width: 40px; height: 60px; object-fit: cover;">
-                                        <span>{{ $booking['movie_title'] }}</span>
+                                        <span>{{ $booking->showtime->movie->title }}</span>
                                     </div>
                                 </td>
-                                <td>{{ $booking['showtime'] }}</td>
-                                <td>{{ implode(', ', $booking['seats']) }}</td>
+                                <td>{{ $booking->showtime->time }} ({{ $booking->showtime->date->format('M d') }})</td>
+                                <td>{{ $booking->seat_number }}</td>
+                                <td>${{ number_format($booking->amount, 2) }}</td>
                                 <td>
-                                    <span class="badge bg-{{ $booking['status_color'] }}">
-                                        {{ $booking['status'] }}
+                                    <span class="badge bg-{{ $booking->status === 'confirmed' ? 'success' : ($booking->status === 'cancelled' ? 'danger' : 'warning') }}">
+                                        {{ ucfirst($booking->status) }}
                                     </span>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center">No recent bookings</td>
+                                <td colspan="7" class="text-center">No recent bookings</td>
                             </tr>
                         @endforelse
                     </tbody>

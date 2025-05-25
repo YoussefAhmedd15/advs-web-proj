@@ -32,6 +32,11 @@ class AuthController extends Controller
             if ($user) {
                 $user->last_login_at = now();
                 $user->save();
+                
+                // Redirect admin users to admin dashboard
+                if ($user->is_admin) {
+                    return redirect()->route('admin.dashboard');
+                }
             }
             
             return redirect()->intended(route('movies.index'));

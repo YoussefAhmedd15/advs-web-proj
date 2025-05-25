@@ -15,11 +15,13 @@ class Booking extends Model
         'customer_name',
         'customer_email',
         'customer_phone',
-        'status'
+        'status',
+        'amount'
     ];
 
     protected $casts = [
-        'status' => 'string'
+        'status' => 'string',
+        'amount' => 'decimal:2'
     ];
 
     public function user(): BelongsTo
