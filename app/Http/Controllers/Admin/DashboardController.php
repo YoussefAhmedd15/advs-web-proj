@@ -31,10 +31,10 @@ class DashboardController extends Controller
             ->get();
             
         // Get today's showtimes
-        $todayShowtimes = Showtime::with('movie')
+        $todayShowtimes = Showtime::with(['movie', 'screen'])
             ->whereDate('date', Carbon::today())
             ->orderBy('time')
-            ->get();
+            ->paginate(5, ['*'], 'showtimes_page');
             
         // Get bookings for the last 7 days for chart
         $lastWeekBookings = Booking::select(
@@ -57,10 +57,31 @@ class DashboardController extends Controller
             ->get();
             
         // Get top movies by bookings
-        $topMovies = Movie::select('movies.*', DB::raw('COUNT(bookings.id) as booking_count'))
+        $topMovies = Movie::select([
+                'movies.id',
+                'movies.title',
+                'movies.genre',
+                'movies.duration',
+                'movies.synopsis',
+                'movies.poster',
+                'movies.trailer_url',
+                'movies.rating',
+                'movies.is_active',
+                DB::raw('COUNT(bookings.id) as booking_count')
+            ])
             ->leftJoin('showtimes', 'movies.id', '=', 'showtimes.movie_id')
             ->leftJoin('bookings', 'showtimes.id', '=', 'bookings.showtime_id')
-            ->groupBy('movies.id')
+            ->groupBy([
+                'movies.id',
+                'movies.title',
+                'movies.genre',
+                'movies.duration',
+                'movies.synopsis',
+                'movies.poster',
+                'movies.trailer_url',
+                'movies.rating',
+                'movies.is_active'
+            ])
             ->orderByDesc('booking_count')
             ->take(5)
             ->get();

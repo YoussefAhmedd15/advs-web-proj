@@ -12,13 +12,17 @@
                     <h5 class="card-title">Profile Information</h5>
                     <div class="mb-3">
                         <label class="form-label">Name</label>
-                        <p class="form-control-static">{{ $user['name'] }}</p>
+                        <p class="form-control-static">{{ $user->name }}</p>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Email</label>
-                        <p class="form-control-static">{{ $user['email'] }}</p>
+                        <p class="form-control-static">{{ $user->email }}</p>
                     </div>
-                    <a href="#" class="btn btn-outline-primary">Edit Profile</a>
+                    <div class="mb-3">
+                        <label class="form-label">Phone</label>
+                        <p class="form-control-static">{{ $user->phone }}</p>
+                    </div>
+                    <a href="{{ route('profile.edit') }}" class="btn btn-outline-primary">Edit Profile</a>
                 </div>
             </div>
 
@@ -41,73 +45,80 @@
         <!-- Bookings -->
         <div class="col-md-8">
             <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Your Bookings</h5>
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">Your Bookings</h5>
-                    
-                    @forelse($bookings as $booking)
-                        <div class="booking-item mb-4">
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <img src="{{ $booking['movie_poster'] }}" 
-                                         class="img-fluid rounded" 
-                                         alt="{{ $booking['movie_title'] }}">
-                                </div>
-                                <div class="col-md-9">
-                                    <h6>{{ $booking['movie_title'] }}</h6>
-                                    <p class="mb-2">
-                                        <span class="badge bg-primary">{{ $booking['genre'] }}</span>
-                                        <span class="text-muted">{{ $booking['duration'] }} min</span>
-                                    </p>
-                                    <div class="row mb-2">
-                                        <div class="col-md-6">
-                                            <small class="text-muted">Showtime</small>
-                                            <p class="mb-0">{{ $booking['showtime'] }}</p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <small class="text-muted">Date</small>
-                                            <p class="mb-0">{{ $booking['date'] }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-md-6">
-                                            <small class="text-muted">Hall</small>
-                                            <p class="mb-0">{{ $booking['hall'] }}</p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <small class="text-muted">Seats</small>
-                                            <p class="mb-0">{{ implode(', ', $booking['seats']) }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <span class="badge bg-{{ $booking['status_color'] }}">
-                                                {{ $booking['status'] }}
-                                            </span>
-                                            <span class="ms-2">${{ number_format($booking['amount'], 2) }}</span>
-                                        </div>
-                                        @if($booking['can_cancel'])
-                                            <form action="{{ route('bookings.cancel', $booking['id']) }}" 
-                                                  method="POST" 
-                                                  class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" 
-                                                        class="btn btn-outline-danger btn-sm"
-                                                        onclick="return confirm('Are you sure you want to cancel this booking?')">
-                                                    Cancel Booking
-                                                </button>
-                                            </form>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
+                    @if(session('success'))
+                        <div class="alert alert-success">
+                            {{ session('success') }}
                         </div>
-                    @empty
+                    @endif
+
+                    @if($bookings->isEmpty())
                         <div class="alert alert-info">
                             You haven't made any bookings yet.
                             <a href="{{ route('movies.index') }}" class="alert-link">Browse movies</a>
                         </div>
-                    @endforelse
+                    @else
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Movie</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Screen</th>
+                                        <th>Tickets</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($bookings as $booking)
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="{{ $booking->showtime->movie->poster }}" 
+                                                        alt="{{ $booking->showtime->movie->title }}" 
+                                                        class="img-thumbnail me-2" style="width: 50px;">
+                                                    {{ $booking->showtime->movie->title }}
+                                                </div>
+                                            </td>
+                                            <td>{{ $booking->showtime->date ?? 'N/A' }}</td>
+                                            <td>{{ $booking->showtime->time ?? 'N/A' }}</td>
+                                            <td>{{ $booking->showtime->screen->name }}</td>
+                                            <td>{{ $booking->number_of_tickets }}</td>
+                                            <td>
+                                                <span class="badge bg-{{ $booking->status === 'confirmed' ? 'success' : 'warning' }}">
+                                                    {{ ucfirst($booking->status) }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{{ route('bookings.show', $booking) }}" 
+                                                    class="btn btn-sm btn-primary">View</a>
+                                                @if($booking->status === 'confirmed')
+                                                    <form action="{{ route('bookings.cancel', $booking) }}" 
+                                                        method="POST" class="d-inline">
+                                                        @csrf
+                                                        @method('PUT')
+                                                        <button type="submit" class="btn btn-sm btn-danger" 
+                                                            onclick="return confirm('Are you sure you want to cancel this booking?')">
+                                                            Cancel
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex justify-content-center mt-4">
+                            {{ $bookings->links() }}
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -116,5 +127,12 @@
 @endsection
 
 @section('styles')
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+<style>
+.booking-card {
+    transition: all 0.3s ease;
+}
+.booking-card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+</style>
 @endsection 

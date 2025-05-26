@@ -30,7 +30,7 @@
                                 </div>
                                 <div>
                                     <p class="text-sm text-gray-600">Showtime</p>
-                                    <p class="font-medium">{{ $booking->showtime->start_time->format('F j, Y g:i A') }}</p>
+                                    <p class="font-medium">{{ $booking->showtime->date ?? 'N/A' }} {{ $booking->showtime->time ?? 'N/A' }}</p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-gray-600">Screen</p>

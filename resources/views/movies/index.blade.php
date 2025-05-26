@@ -1,57 +1,83 @@
-<x-app-layout>
-    <div class="py-6 bg-gray-900 min-h-screen">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Search Section -->
-            <div class="mb-8">
-                <form action="{{ route('movies.index') }}" method="GET" class="flex gap-4">
-                    <div class="flex-1">
-                        <input type="text" 
-                               name="query" 
-                               class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                               placeholder="Search movies..." 
-                               value="{{ request('query') }}">
-                    </div>
-                    <div class="w-48">
-                        <select name="genre" 
-                                class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-md text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                onchange="this.form.submit()">
-                            <option value="">All Genres</option>
-                            @foreach($genres as $genre)
-                                <option value="{{ $genre }}" {{ request('genre') == $genre ? 'selected' : '' }}>
-                                    {{ $genre }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <button type="submit" 
-                            class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200">
-                        Search
-                    </button>
-                </form>
-            </div>
+@extends('layouts.app')
 
-            <!-- Movies Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                @forelse($movies as $movie)
-                    <x-movie-card :movie="$movie" />
-                @empty
-                    <div class="col-span-full">
-                        <div class="bg-blue-900/20 text-blue-200 p-4 rounded-lg">
-                            <p>No movies found matching your search criteria.</p>
-                        </div>
-                    </div>
-                @endforelse
-            </div>
+@section('title', 'Movies - Cinema Management System')
 
-            <!-- Pagination -->
-            @if($movies->hasPages())
-                <div class="mt-6">
-                    {{ $movies->withQueryString()->links() }}
+@section('content')
+<div class="container py-5">
+    <!-- Search Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <form action="{{ route('movies.index') }}" method="GET" class="d-flex gap-3">
+                <div class="flex-grow-1">
+                    <input type="text" 
+                           name="query" 
+                           class="form-control" 
+                           placeholder="Search movies..." 
+                           value="{{ request('query') }}">
                 </div>
-            @endif
+                <div class="col-md-3">
+                    <select name="genre" 
+                            class="form-select"
+                            onchange="this.form.submit()">
+                        <option value="">All Genres</option>
+                        @foreach($genres as $genre)
+                            <option value="{{ $genre }}" {{ request('genre') == $genre ? 'selected' : '' }}>
+                                {{ $genre }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    Search
+                </button>
+            </form>
         </div>
     </div>
-</x-app-layout>
+
+    <!-- Movies Grid -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @forelse($movies as $movie)
+            <div class="col">
+                <div class="card h-100 movie-card">
+                    <img src="{{ $movie->poster }}" 
+                         class="card-img-top" 
+                         alt="{{ $movie->title }}"
+                         style="height: 400px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ $movie->title }}</h5>
+                        <p class="card-text">
+                            <span class="badge bg-primary">{{ $movie->genre }}</span>
+                            <span class="text-muted">{{ $movie->duration }} min</span>
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-warning">
+                                <i class="fas fa-star"></i>
+                                {{ number_format($movie->rating, 1) }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-top-0">
+                        <a href="{{ route('movies.show', $movie->id) }}" class="btn btn-primary w-100">View Details</a>
+                    </div>
+                </div>
+            </div>
+        @empty
+            <div class="col-12">
+                <div class="alert alert-info">
+                    No movies found matching your search criteria.
+                </div>
+            </div>
+        @endforelse
+    </div>
+
+    <!-- Pagination -->
+    @if($movies->hasPages())
+        <div class="mt-4">
+            {{ $movies->withQueryString()->links() }}
+        </div>
+    @endif
+</div>
+@endsection
 
 @section('styles')
 <style>

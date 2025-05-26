@@ -17,6 +17,8 @@ class ShowtimeSeeder extends Seeder
         $basePrices = [
             'Screen 1' => 12.00,
             'Screen 2' => 15.00,
+            'Screen 3' => 12.00,
+            'Screen 4' => 15.00,
             'VIP Screen' => 25.00,
         ];
 
@@ -28,15 +30,14 @@ class ShowtimeSeeder extends Seeder
                 foreach ($screens as $screen) {
                     // Create 3 showtimes per day for each movie-screen combination
                     for ($i = 0; $i < 3; $i++) {
-                        $startTime = $date->copy()->setHour(10 + ($i * 4))->setMinute(0);
-                        $endTime = $startTime->copy()->addMinutes($movie->duration_minutes + 20); // Add 20 minutes for cleaning
-
+                        $time = $date->copy()->setHour(10 + ($i * 4))->setMinute(0);
+                        
                         Showtime::create([
                             'movie_id' => $movie->id,
                             'screen_id' => $screen->id,
-                            'start_time' => $startTime,
-                            'end_time' => $endTime,
-                            'base_price' => $basePrices[$screen->name],
+                            'date' => $date->format('Y-m-d'),
+                            'time' => $time->format('H:i:s'),
+                            'price' => $basePrices[$screen->name] ?? 12.00,
                             'is_active' => true,
                         ]);
                     }

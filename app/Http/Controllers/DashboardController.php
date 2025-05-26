@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
+use App\Models\Showtime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -9,50 +11,32 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Static user data
-        $user = [
-            'name' => 'John Doe',
-            'email' => 'john@example.com'
-        ];
+        $user = Auth::user();
+        
+        // Get user's bookings with relationships
+        $bookings = Booking::with(['showtime.movie', 'showtime.screen'])
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
 
-        // Static booking data
-        $bookings = [
-            [
-                'id' => 1,
-                'movie_title' => 'The Dark Knight',
-                'movie_poster' => 'https://example.com/dark-knight.jpg',
-                'genre' => 'Action',
-                'duration' => 152,
-                'showtime' => '19:00',
-                'date' => '2024-03-15',
-                'hall' => 'Hall A',
-                'seats' => ['A1', 'A2'],
-                'amount' => 24.00,
-                'status' => 'Confirmed',
-                'status_color' => 'success',
-                'can_cancel' => true
-            ],
-            [
-                'id' => 2,
-                'movie_title' => 'Inception',
-                'movie_poster' => 'https://example.com/inception.jpg',
-                'genre' => 'Sci-Fi',
-                'duration' => 148,
-                'showtime' => '20:00',
-                'date' => '2024-03-20',
-                'hall' => 'Hall B',
-                'seats' => ['B3'],
-                'amount' => 12.00,
-                'status' => 'Pending',
-                'status_color' => 'warning',
-                'can_cancel' => true
-            ]
-        ];
+        // Count upcoming shows
+        $upcomingShows = Showtime::where('date', '>=', now()->format('Y-m-d'))
+            ->where('is_active', true)
+            ->count();
 
-        // Static stats
-        $upcomingShows = 2;
-        $rewardPoints = 150;
+        // Calculate reward points (example: 10 points per booking)
+        $rewardPoints = $bookings->count() * 10;
 
         return view('dashboard', compact('user', 'bookings', 'upcomingShows', 'rewardPoints'));
+    }
+
+    private function getStatusColor($status)
+    {
+        return match($status) {
+            'confirmed' => 'success',
+            'pending' => 'warning',
+            'cancelled' => 'danger',
+            default => 'secondary'
+        };
     }
 } 

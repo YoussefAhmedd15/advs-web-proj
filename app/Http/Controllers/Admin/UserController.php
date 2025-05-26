@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -22,7 +23,8 @@ class UserController extends Controller
             $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
                 $q->where('name', 'like', "%{$searchTerm}%")
-                  ->orWhere('email', 'like', "%{$searchTerm}%");
+                  ->orWhere('email', 'like', "%{$searchTerm}%")
+                  ->orWhere('phone', 'like', "%{$searchTerm}%");
             });
         }
         
@@ -73,6 +75,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'phone' => ['required', 'string', 'max:20'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'is_admin' => ['boolean'],
         ]);
@@ -80,8 +83,9 @@ class UserController extends Controller
         User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'phone' => $validated['phone'],
             'password' => Hash::make($validated['password']),
-            'is_admin' => $request->has('is_admin'),
+            'is_admin' => $request->boolean('is_admin'),
         ]);
 
         return redirect()->route('admin.users.index')
@@ -101,30 +105,43 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'is_admin' => ['boolean'],
-        ]);
-
-        $data = [
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'is_admin' => $request->has('is_admin'),
-        ];
-
-        // Only update password if provided
-        if ($request->filled('password')) {
-            $request->validate([
-                'password' => ['string', 'min:8', 'confirmed'],
+        try {
+            $validated = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+                'phone' => ['required', 'string', 'max:20'],
+                'is_admin' => ['boolean'],
             ]);
-            $data['password'] = Hash::make($request->password);
+
+            $data = [
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'is_admin' => $request->boolean('is_admin'),
+            ];
+
+            // Only update password if provided
+            if ($request->filled('password')) {
+                $request->validate([
+                    'password' => ['string', 'min:8', 'confirmed'],
+                ]);
+                $data['password'] = Hash::make($request->password);
+            }
+
+            $user->update($data);
+
+            return redirect()->route('admin.users.index')
+                ->with('success', 'User updated successfully.');
+        } catch (\Exception $e) {
+            Log::error('Error updating user', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Failed to update user. ' . $e->getMessage()]);
         }
-
-        $user->update($data);
-
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User updated successfully.');
     }
 
     /**

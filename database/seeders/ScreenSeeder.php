@@ -12,25 +12,34 @@ class ScreenSeeder extends Seeder
         $screens = [
             [
                 'name' => 'Screen 1',
-                'total_seats' => 100,
-                'rows' => 10,
-                'seats_per_row' => 10,
-                'is_active' => true,
+                'capacity' => 100,
+                'description' => 'Standard screen with comfortable seating',
+                'is_active' => true
             ],
             [
                 'name' => 'Screen 2',
-                'total_seats' => 150,
-                'rows' => 15,
-                'seats_per_row' => 10,
-                'is_active' => true,
+                'capacity' => 150,
+                'description' => 'Large screen with premium sound system',
+                'is_active' => true
+            ],
+            [
+                'name' => 'Screen 3',
+                'capacity' => 80,
+                'description' => 'Intimate screening room',
+                'is_active' => true
+            ],
+            [
+                'name' => 'Screen 4',
+                'capacity' => 120,
+                'description' => 'Modern screen with 3D capability',
+                'is_active' => true
             ],
             [
                 'name' => 'VIP Screen',
-                'total_seats' => 50,
-                'rows' => 5,
-                'seats_per_row' => 10,
-                'is_active' => true,
-            ],
+                'capacity' => 50,
+                'description' => 'Luxury screening room with premium amenities',
+                'is_active' => true
+            ]
         ];
 
         foreach ($screens as $screen) {

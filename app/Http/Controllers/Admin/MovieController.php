@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Movie;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class MovieController extends Controller
 {
@@ -69,50 +70,70 @@ class MovieController extends Controller
         return view('admin.movies.create');
     }
 
+    private function convertToEmbedUrl($url)
+    {
+        // If it's already an embed URL, return as is
+        if (str_contains($url, 'youtube.com/embed/')) {
+            return $url;
+        }
+
+        // Extract video ID from various YouTube URL formats
+        $videoId = null;
+        
+        // Format: https://www.youtube.com/watch?v=VIDEO_ID
+        if (preg_match('/youtube\.com\/watch\?v=([^\&\?\/]+)/', $url, $matches)) {
+            $videoId = $matches[1];
+        }
+        // Format: https://youtu.be/VIDEO_ID
+        elseif (preg_match('/youtu\.be\/([^\&\?\/]+)/', $url, $matches)) {
+            $videoId = $matches[1];
+        }
+        // Format: https://www.youtube.com/v/VIDEO_ID
+        elseif (preg_match('/youtube\.com\/v\/([^\&\?\/]+)/', $url, $matches)) {
+            $videoId = $matches[1];
+        }
+
+        if ($videoId) {
+            return "https://www.youtube.com/embed/{$videoId}";
+        }
+
+        return $url;
+    }
+
     public function store(Request $request)
     {
-        // Log the incoming request data
-        Log::info('Movie store method called', [
-            'request_data' => $request->all()
-        ]);
-
         try {
             $validated = $request->validate([
                 'title' => ['required', 'string', 'max:255'],
                 'genre' => ['required', 'string', 'max:255'],
                 'duration' => ['required', 'integer', 'min:1'],
-                'poster' => ['required', 'url'],
-                'trailer_url' => ['required', 'url'],
                 'synopsis' => ['required', 'string'],
-                'rating' => ['nullable', 'numeric', 'min:0', 'max:10'],
+                'poster' => ['required', 'string', 'url'],
+                'trailer_url' => ['required', 'url'],
+                'rating' => ['required', 'numeric', 'min:0', 'max:10'],
                 'is_active' => ['boolean'],
             ]);
             
-            // Log the validated data
-            Log::info('Validation passed', [
-                'validated_data' => $validated
-            ]);
+            // Convert YouTube URL to embed format
+            $validated['trailer_url'] = $this->convertToEmbedUrl($validated['trailer_url']);
             
             // Set default value for is_active if not provided
             $validated['is_active'] = $request->has('is_active');
             
             // Create the movie
             $movie = Movie::create($validated);
-            
-            // Log the created movie
-            Log::info('Movie created successfully', [
-                'movie' => $movie
-            ]);
 
-            return redirect()->route('admin.movies.index')->with('success', 'Movie created successfully!');
+            return redirect()->route('admin.movies.index')
+                ->with('success', 'Movie created successfully!');
         } catch (\Exception $e) {
-            // Log any errors
             Log::error('Error creating movie', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
             
-            return back()->withInput()->withErrors(['error' => 'Failed to create movie. ' . $e->getMessage()]);
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Failed to create movie. ' . $e->getMessage()]);
         }
     }
 
@@ -123,36 +144,63 @@ class MovieController extends Controller
 
     public function update(Request $request, Movie $movie)
     {
-        $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'genre' => ['required', 'string', 'max:255'],
-            'duration' => ['required', 'integer', 'min:1'],
-            'poster' => ['required', 'url'],
-            'trailer_url' => ['required', 'url'],
-            'synopsis' => ['required', 'string'],
-            'rating' => ['nullable', 'numeric', 'min:0', 'max:10'],
-            'is_active' => ['boolean'],
-        ]);
-        
-        // Set default value for is_active if not provided
-        $validated['is_active'] = $request->has('is_active');
-        
-        // Update the movie
-        $movie->update($validated);
+        try {
+            $validated = $request->validate([
+                'title' => ['required', 'string', 'max:255'],
+                'genre' => ['required', 'string', 'max:255'],
+                'duration' => ['required', 'integer', 'min:1'],
+                'synopsis' => ['required', 'string'],
+                'poster' => ['required', 'string', 'url'],
+                'trailer_url' => ['required', 'url'],
+                'rating' => ['required', 'numeric', 'min:0', 'max:10'],
+                'is_active' => ['boolean'],
+            ]);
+            
+            // Convert YouTube URL to embed format
+            $validated['trailer_url'] = $this->convertToEmbedUrl($validated['trailer_url']);
+            
+            // Set default value for is_active if not provided
+            $validated['is_active'] = $request->has('is_active');
+            
+            // Update the movie
+            $movie->update($validated);
 
-        return redirect()->route('admin.movies.index')->with('success', 'Movie updated successfully!');
+            return redirect()->route('admin.movies.index')
+                ->with('success', 'Movie updated successfully!');
+        } catch (\Exception $e) {
+            Log::error('Error updating movie', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+            
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Failed to update movie. ' . $e->getMessage()]);
+        }
     }
 
     public function destroy(Movie $movie)
     {
-        // Check if movie has associated showtimes
-        if ($movie->showtimes()->count() > 0) {
+        try {
+            // Check if movie has associated showtimes
+            if ($movie->showtimes()->count() > 0) {
+                return redirect()->route('admin.movies.index')
+                    ->with('error', 'Cannot delete movie that has associated showtimes.');
+            }
+            
+            $movie->delete();
+            
             return redirect()->route('admin.movies.index')
-                ->with('error', 'Cannot delete movie that has associated showtimes.');
+                ->with('success', 'Movie deleted successfully!');
+        } catch (\Exception $e) {
+            Log::error('Error deleting movie', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->route('admin.movies.index')
+                ->with('error', 'Failed to delete movie. ' . $e->getMessage());
         }
-        
-        $movie->delete();
-        
-        return redirect()->route('admin.movies.index')->with('success', 'Movie deleted successfully!');
     }
 } 

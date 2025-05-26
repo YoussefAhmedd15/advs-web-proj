@@ -59,7 +59,11 @@ use Illuminate\Support\Facades\Auth;
                                 {{ Auth::user()->name }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{{ route('dashboard') }}">Dashboard</a></li>
+                                @if(Auth::user()->is_admin)
+                                    <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">Admin Dashboard</a></li>
+                                @else
+                                    <li><a class="dropdown-item" href="{{ route('dashboard') }}">My Bookings</a></li>
+                                @endif
                                 <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Profile</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>

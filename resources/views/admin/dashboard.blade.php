@@ -27,57 +27,6 @@ use App\Models\User;
         </div>
     </div>
 
-    <!-- Admin Actions -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Admin Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <div class="card h-100 border-primary">
-                                <div class="card-body text-center">
-                                    <i class="bi bi-people fs-1 text-primary mb-2"></i>
-                                    <h5>User Management</h5>
-                                    <p>Add, edit, or remove users and manage their permissions</p>
-                                    <a href="{{ route('admin.users.index') }}" class="btn btn-primary">
-                                        <i class="bi bi-people"></i> Manage Users
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card h-100 border-success">
-                                <div class="card-body text-center">
-                                    <i class="bi bi-film fs-1 text-success mb-2"></i>
-                                    <h5>Movie Management</h5>
-                                    <p>Add new movies, update details, or remove old movies</p>
-                                    <a href="{{ route('admin.movies.index') }}" class="btn btn-success">
-                                        <i class="bi bi-film"></i> Manage Movies
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card h-100 border-info">
-                                <div class="card-body text-center">
-                                    <i class="bi bi-calendar-event fs-1 text-info mb-2"></i>
-                                    <h5>Showtime Management</h5>
-                                    <p>Schedule movie showtimes and manage theater availability</p>
-                                    <a href="#" class="btn btn-info text-white">
-                                        <i class="bi bi-calendar-event"></i> Manage Showtimes
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
     <!-- Stats Cards -->
     <div class="row mb-4">
         <div class="col-md-3">
@@ -138,6 +87,65 @@ use App\Models\User;
         </div>
     </div>
 
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a href="{{ route('admin.movies.index') }}" class="text-decoration-none">
+                                <div class="card h-100 border-primary hover-shadow">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-film fs-1 text-primary mb-2"></i>
+                                        <h5>Movies</h5>
+                                        <p class="small text-muted mb-0">Manage movies and details</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ route('admin.showtimes.index') }}" class="text-decoration-none">
+                                <div class="card h-100 border-success hover-shadow">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-calendar-event fs-1 text-success mb-2"></i>
+                                        <h5>Showtimes</h5>
+                                        <p class="small text-muted mb-0">Schedule movie showtimes</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ route('admin.screens.index') }}" class="text-decoration-none">
+                                <div class="card h-100 border-info hover-shadow">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-display fs-1 text-info mb-2"></i>
+                                        <h5>Screens</h5>
+                                        <p class="small text-muted mb-0">Manage theater screens</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ route('admin.users.index') }}" class="text-decoration-none">
+                                <div class="card h-100 border-warning hover-shadow">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-people fs-1 text-warning mb-2"></i>
+                                        <h5>Users</h5>
+                                        <p class="small text-muted mb-0">Manage user accounts</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row mb-4">
         <!-- Top Movies -->
         <div class="col-md-6">
@@ -180,7 +188,7 @@ use App\Models\User;
                         <p class="text-center">No showtimes scheduled for today</p>
                     @else
                         <div class="table-responsive">
-                            <table class="table">
+                            <table class="table table-sm">
                                 <thead>
                                     <tr>
                                         <th>Movie</th>
@@ -191,13 +199,16 @@ use App\Models\User;
                                 <tbody>
                                     @foreach($todayShowtimes as $showtime)
                                         <tr>
-                                            <td>{{ $showtime->movie->title }}</td>
+                                            <td>{{ $showtime->movie->title ?? 'N/A' }}</td>
                                             <td>{{ $showtime->time }}</td>
-                                            <td>{{ $showtime->screen->name }}</td>
+                                            <td>{{ $showtime->screen->name ?? 'N/A' }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="d-flex justify-content-center mt-2">
+                            {{ $todayShowtimes->appends(request()->except('showtimes_page'))->links('pagination::bootstrap-5') }}
                         </div>
                     @endif
                 </div>
@@ -262,4 +273,84 @@ use App\Models\User;
 
 @section('styles')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        .hover-shadow:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .card {
+            transition: all 0.3s ease;
+        }
+        .table > :not(caption) > * > * {
+            padding: 1rem;
+        }
+        
+        .badge {
+            padding: 0.5em 0.8em;
+            font-weight: 500;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+        
+        .table-light th {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .text-muted {
+            font-size: 0.85rem;
+        }
+        
+        .bi-calendar-x {
+            opacity: 0.5;
+        }
+        
+        /* Pagination Styles */
+        .pagination {
+            margin: 0;
+            padding: 0;
+            font-size: 0.875rem;
+        }
+        
+        .pagination .page-item {
+            margin: 0 1px;
+        }
+        
+        .pagination .page-link {
+            color: #0d6efd;
+            border: 1px solid #dee2e6;
+            padding: 4px 8px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+        
+        .pagination .page-link:hover {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+            color: #0a58ca;
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: white;
+        }
+        
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            pointer-events: none;
+            background-color: #fff;
+            border-color: #dee2e6;
+        }
+        
+        .table-sm td, .table-sm th {
+            padding: 0.5rem;
+            font-size: 0.875rem;
+        }
+    </style>
 @endsection 

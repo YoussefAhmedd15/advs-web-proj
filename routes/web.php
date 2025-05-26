@@ -11,6 +11,7 @@ use App\Http\Controllers\SetupController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\MovieController as AdminMovieController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\ShowtimeController;
 use App\Http\Middleware\AdminMiddleware;
 
 // Public Routes
@@ -38,16 +39,19 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     
     // Booking Routes
     Route::prefix('bookings')->name('bookings.')->group(function () {
-        Route::get('/showtimes/{showtime}/seats', [BookingController::class, 'showSeatSelection'])->name('seats');
+        Route::get('/create/{showtime}', [BookingController::class, 'create'])->name('create');
         Route::post('/', [BookingController::class, 'store'])->name('store');
         Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
         Route::get('/{booking}/confirmation', [BookingController::class, 'showConfirmation'])->name('confirmation');
         Route::delete('/{booking}', [BookingController::class, 'destroy'])->name('destroy');
-        Route::delete('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
+        Route::put('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
+        Route::get('/seats/{showtime}', [BookingController::class, 'showSeatSelection'])->name('seats');
+        Route::post('/payment/{booking}', [BookingController::class, 'payment'])->name('payment');
     });
 });
 
@@ -65,5 +69,18 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
         Route::delete('/{movie}', [AdminMovieController::class, 'destroy'])->name('destroy');
     });
     
+    // Showtime Routes
+    Route::prefix('showtimes')->name('showtimes.')->group(function () {
+        Route::get('/', [ShowtimeController::class, 'index'])->name('index');
+        Route::get('/create', [ShowtimeController::class, 'create'])->name('create');
+        Route::post('/', [ShowtimeController::class, 'store'])->name('store');
+        Route::get('/{showtime}/edit', [ShowtimeController::class, 'edit'])->name('edit');
+        Route::put('/{showtime}', [ShowtimeController::class, 'update'])->name('update');
+        Route::delete('/{showtime}', [ShowtimeController::class, 'destroy'])->name('destroy');
+    });
+    
     Route::resource('users', AdminUserController::class)->except(['show']);
+    
+    // Screen Routes
+    Route::resource('screens', App\Http\Controllers\Admin\ScreenController::class);
 });

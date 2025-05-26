@@ -10,7 +10,7 @@
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">{{ $showtime->movie->title }}</h1>
                     <p class="text-gray-600">{{ $showtime->movie->genre }} • {{ $showtime->movie->duration_minutes }} min</p>
-                    <p class="text-gray-600">{{ $showtime->start_time->format('l, F j, Y') }} at {{ $showtime->start_time->format('g:i A') }}</p>
+                    <p class="text-gray-600">{{ $showtime->date ? $showtime->date->format('l, F j, Y') : 'N/A' }} at {{ $showtime->time ?? 'N/A' }}</p>
                     <p class="text-gray-600">Screen: {{ $showtime->screen->name }}</p>
                 </div>
             </div>

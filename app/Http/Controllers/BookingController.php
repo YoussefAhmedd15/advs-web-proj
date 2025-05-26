@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Models\BookingSeat;
 use App\Models\Movie;
 use App\Models\Screen;
 use App\Models\Seat;
@@ -10,6 +11,8 @@ use App\Models\Showtime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
@@ -37,55 +40,120 @@ class BookingController extends Controller
         ];
     }
 
-    public function create(Request $request)
+    public function create(Showtime $showtime)
     {
-        $movieId = $request->input('movie');
-        $showtimeId = $request->input('showtime');
-
-        $movie = collect($this->movies)->firstWhere('id', $movieId);
-        if (!$movie) {
-            abort(404);
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Please login to make a booking.');
         }
 
-        $showtime = collect($movie['showtimes'])->firstWhere('id', $showtimeId);
-        if (!$showtime) {
-            abort(404);
+        // Check if showtime exists and is in the future
+        if (!$showtime || $showtime->date < now()->format('Y-m-d')) {
+            return back()->with('error', 'This showtime is no longer available.');
         }
 
-        $pricePerTicket = 12.00; // Static price per ticket
+        // Load the movie and screen relationships
+        $showtime->load(['movie', 'screen']);
 
-        return view('booking.create', compact('movie', 'showtime', 'pricePerTicket'));
+        // Check if movie exists and is active
+        if (!$showtime->movie || !$showtime->movie->is_active) {
+            return back()->with('error', 'This movie is no longer available.');
+        }
+
+        // Check if screen exists and is active
+        if (!$showtime->screen || !$showtime->screen->is_active) {
+            return back()->with('error', 'This screen is no longer available.');
+        }
+
+        // Calculate available seats
+        $totalBooked = Booking::where('showtime_id', $showtime->id)
+            ->where('status', '!=', 'cancelled')
+            ->sum('number_of_tickets');
+        
+        $availableSeats = $showtime->screen->capacity - $totalBooked;
+
+        return view('bookings.create', compact('showtime', 'availableSeats'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, Showtime $showtime)
     {
-        $validated = $request->validate([
-            'showtime_id' => 'required|exists:showtimes,id',
-            'seat_number' => 'required|string',
-            'customer_name' => 'required|string|max:255',
-            'customer_email' => 'required|email|max:255',
-            'customer_phone' => 'required|string|max:20',
+        // Validate the request
+        $request->validate([
+            'number_of_tickets' => ['required', 'integer', 'min:1', 'max:10'],
         ]);
 
-        $booking = Booking::create([
-            'user_id' => Auth::id(),
-            'showtime_id' => $validated['showtime_id'],
-            'seat_number' => $validated['seat_number'],
-            'customer_name' => $validated['customer_name'],
-            'customer_email' => $validated['customer_email'],
-            'customer_phone' => $validated['customer_phone'],
-            'status' => 'confirmed'
-        ]);
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Please login to make a booking.');
+        }
 
-        return redirect()->route('bookings.confirmation', $booking)
-            ->with('success', 'Booking confirmed successfully!');
+        // Check if showtime exists and is in the future
+        if (!$showtime || $showtime->date < now()->format('Y-m-d')) {
+            return back()->with('error', 'This showtime is no longer available.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Check if there are enough seats available
+            $totalBooked = Booking::where('showtime_id', $showtime->id)
+                ->where('status', '!=', 'cancelled')
+                ->sum('number_of_tickets');
+            
+            $availableSeats = $showtime->screen->capacity - $totalBooked;
+            
+            if ($request->number_of_tickets > $availableSeats) {
+                return back()->with('error', 'Not enough seats available. Only ' . $availableSeats . ' seats left.');
+            }
+
+            // Create the booking
+            $booking = new Booking();
+            $booking->user_id = Auth::id();
+            $booking->showtime_id = $showtime->id;
+            $booking->number_of_tickets = $request->number_of_tickets;
+            $booking->status = 'pending';
+            $booking->amount = $showtime->price * $request->number_of_tickets;
+            $booking->payment_status = 'unpaid';
+            $booking->save();
+
+            // Log the successful booking creation
+            Log::info('Booking created successfully', [
+                'booking_id' => $booking->id,
+                'user_id' => Auth::id(),
+                'showtime_id' => $showtime->id,
+                'number_of_tickets' => $request->number_of_tickets,
+                'amount' => $booking->amount
+            ]);
+
+            DB::commit();
+
+            // Redirect to payment page
+            return redirect()->route('bookings.payment', $booking)
+                ->with('success', 'Booking created! Please complete the payment to confirm your booking.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error creating booking', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => Auth::id(),
+                'showtime_id' => $showtime->id,
+                'request_data' => $request->all()
+            ]);
+
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Failed to create booking. Please try again.']);
+        }
     }
 
     public function show(Booking $booking)
     {
-        if ($booking->user_id !== Auth::id()) {
+        // Ensure user can only view their own bookings unless admin
+        if (!$booking->user_id === Auth::id() && Auth::user()->role !== 'admin') {
             abort(403);
         }
+
         return view('bookings.show', compact('booking'));
     }
 
@@ -125,10 +193,79 @@ class BookingController extends Controller
 
     public function cancel(Booking $booking)
     {
+        // Ensure user can only cancel their own bookings unless admin
+        if ($booking->user_id !== Auth::id() && !Auth::user()->is_admin) {
+            return back()->with('error', 'You are not authorized to cancel this booking.');
+        }
+
+        // Only allow cancellation of confirmed bookings
+        if ($booking->status !== 'confirmed') {
+            return back()->with('error', 'This booking cannot be cancelled.');
+        }
+
+        // Check if showtime is in the future
+        if ($booking->showtime->date < now()->format('Y-m-d')) {
+            return back()->with('error', 'Cannot cancel bookings for past showtimes.');
+        }
+
+        try {
+            DB::beginTransaction();
+            
+            // Delete the booking
+            $booking->delete();
+
+            DB::commit();
+
+            return redirect()->route('dashboard')
+                ->with('success', 'Booking cancelled and removed successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error cancelling booking', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return back()->with('error', 'Failed to cancel booking. Please try again.');
+        }
+    }
+
+    public function payment(Request $request, Booking $booking)
+    {
+        // Ensure user can only pay for their own bookings
         if ($booking->user_id !== Auth::id()) {
             abort(403);
         }
-        $booking->update(['status' => 'cancelled']);
-        return redirect()->route('dashboard')->with('success', 'Booking cancelled successfully.');
+
+        // Only allow payment for pending bookings
+        if ($booking->status !== 'pending') {
+            return back()->with('error', 'This booking cannot be paid for.');
+        }
+
+        $request->validate([
+            'card_number' => ['required', 'string', 'regex:/^[\d\s]{19}$/'],
+            'expiry' => ['required', 'string', 'regex:/^\d{2}\/\d{2}$/'],
+            'cvv' => ['required', 'string', 'regex:/^\d{3}$/'],
+        ]);
+
+        try {
+            // Here you would typically integrate with a payment gateway
+            // For demo purposes, we'll just simulate a successful payment
+            $booking->update([
+                'status' => 'confirmed',
+                'payment_status' => 'paid',
+                'payment_method' => 'credit_card',
+                'transaction_id' => 'DEMO-' . strtoupper(uniqid()),
+            ]);
+
+            return redirect()->route('bookings.show', $booking)
+                ->with('success', 'Payment successful! Your booking is now confirmed.');
+        } catch (\Exception $e) {
+            Log::error('Error processing payment', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return back()->with('error', 'Failed to process payment. Please try again.');
+        }
     }
 } 

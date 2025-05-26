@@ -12,6 +12,7 @@ class Movie extends Model
         'genre',
         'duration',
         'synopsis',
+        'description',
         'poster',
         'trailer_url',
         'rating',
@@ -20,7 +21,7 @@ class Movie extends Model
 
     protected $casts = [
         'duration' => 'integer',
-        'rating' => 'decimal:1',
+        'rating' => 'float',
         'is_active' => 'boolean'
     ];
 

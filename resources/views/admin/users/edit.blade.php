@@ -52,6 +52,21 @@
                         </div>
                         
                         <div class="mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" 
+                                   class="form-control @error('phone') is-invalid @enderror" 
+                                   id="phone" 
+                                   name="phone" 
+                                   value="{{ old('phone', $user->phone) }}" 
+                                   required>
+                            @error('phone')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+                        
+                        <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
                             <input type="password" 
                                    class="form-control @error('password') is-invalid @enderror" 
@@ -78,6 +93,7 @@
                                    class="form-check-input" 
                                    id="is_admin" 
                                    name="is_admin" 
+                                   value="1"
                                    {{ old('is_admin', $user->is_admin) ? 'checked' : '' }}>
                             <label class="form-check-label" for="is_admin">
                                 Admin User

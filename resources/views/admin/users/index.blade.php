@@ -39,7 +39,7 @@
                 <div class="col-md-4">
                     <label for="search" class="form-label">Search</label>
                     <input type="text" class="form-control" id="search" name="search" 
-                           placeholder="Search by name or email" value="{{ request('search') }}">
+                           placeholder="Search by name, email or phone" value="{{ request('search') }}">
                 </div>
                 <div class="col-md-3">
                     <label for="role" class="form-label">Role</label>
@@ -80,6 +80,7 @@
                             <th>ID</th>
                             <th>Name</th>
                             <th>Email</th>
+                            <th>Phone</th>
                             <th>Role</th>
                             <th>Created At</th>
                             <th>Last Login</th>
@@ -104,6 +105,7 @@
                                     </div>
                                 </td>
                                 <td>{{ $user->email }}</td>
+                                <td>{{ $user->phone }}</td>
                                 <td>
                                     @if($user->is_admin)
                                         <span class="badge bg-primary">Admin</span>
