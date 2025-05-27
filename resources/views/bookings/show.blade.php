@@ -3,6 +3,27 @@
 @section('title', 'Booking Details - Cinema Management System')
 
 @section('content')
+@if(session('success'))
+<div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+    <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+        <div class="d-flex">
+            <div class="toast-body">
+                {{ session('success') }}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var toastEl = document.getElementById('successToast');
+        if (toastEl) {
+            var toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        }
+    });
+</script>
+@endif
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
@@ -11,12 +32,6 @@
                     <h5 class="mb-0">Booking Details</h5>
                 </div>
                 <div class="card-body">
-                    @if(session('success'))
-                        <div class="alert alert-success">
-                            {{ session('success') }}
-                        </div>
-                    @endif
-
                     @if(session('error'))
                         <div class="alert alert-danger">
                             {{ session('error') }}

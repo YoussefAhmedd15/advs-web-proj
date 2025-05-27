@@ -48,7 +48,11 @@ class BookingController extends Controller
         }
 
         // Check if showtime exists and is in the future
-        if (!$showtime || $showtime->date < now()->format('Y-m-d')) {
+        if (
+            !$showtime ||
+            ($showtime && $showtime->date->toDateString() < now()->toDateString()) ||
+            ($showtime && $showtime->date->toDateString() == now()->toDateString() && $showtime->time < now()->format('H:i:s'))
+        ) {
             return back()->with('error', 'This showtime is no longer available.');
         }
 
@@ -77,6 +81,10 @@ class BookingController extends Controller
 
     public function store(Request $request, Showtime $showtime)
     {
+        if (!$showtime) {
+            abort(404, 'Showtime not found.');
+        }
+
         // Validate the request
         $request->validate([
             'number_of_tickets' => ['required', 'integer', 'min:1', 'max:10'],
@@ -88,7 +96,11 @@ class BookingController extends Controller
         }
 
         // Check if showtime exists and is in the future
-        if (!$showtime || $showtime->date < now()->format('Y-m-d')) {
+        if (
+            !$showtime ||
+            ($showtime && $showtime->date->toDateString() < now()->toDateString()) ||
+            ($showtime && $showtime->date->toDateString() == now()->toDateString() && $showtime->time < now()->format('H:i:s'))
+        ) {
             return back()->with('error', 'This showtime is no longer available.');
         }
 
@@ -127,9 +139,9 @@ class BookingController extends Controller
 
             DB::commit();
 
-            // Redirect to payment page
-            return redirect()->route('bookings.payment', $booking)
-                ->with('success', 'Booking created! Please complete the payment to confirm your booking.');
+            // Redirect to booking details page with success message
+            return redirect()->route('bookings.show', $booking)
+                ->with('success', 'Booking created successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();

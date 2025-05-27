@@ -45,13 +45,14 @@ Route::middleware('auth')->group(function () {
     // Booking Routes
     Route::prefix('bookings')->name('bookings.')->group(function () {
         Route::get('/create/{showtime}', [BookingController::class, 'create'])->name('create');
-        Route::post('/', [BookingController::class, 'store'])->name('store');
+        Route::post('/{showtime}', [BookingController::class, 'store'])->name('store');
         Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
         Route::get('/{booking}/confirmation', [BookingController::class, 'showConfirmation'])->name('confirmation');
         Route::delete('/{booking}', [BookingController::class, 'destroy'])->name('destroy');
         Route::put('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
         Route::get('/seats/{showtime}', [BookingController::class, 'showSeatSelection'])->name('seats');
         Route::post('/payment/{booking}', [BookingController::class, 'payment'])->name('payment');
+        Route::get('/payment/{booking}', [BookingController::class, 'payment'])->name('payment');
     });
 });
 

@@ -8,19 +8,28 @@
     @if($featuredMovie)
     <div class="featured-movie position-relative">
         <div class="featured-overlay"></div>
-        <img src="{{ $featuredMovie->poster }}" class="w-100" alt="{{ $featuredMovie->title }}" style="height: 600px; object-fit: cover;">
-        <div class="featured-content position-absolute top-50 start-50 translate-middle text-center text-white">
-            <h1 class="display-4 fw-bold mb-3">{{ $featuredMovie->title }}</h1>
-            <p class="lead mb-4">{{ $featuredMovie->synopsis }}</p>
-            <div class="d-flex justify-content-center gap-3 mb-4">
-                <span class="badge bg-primary">{{ $featuredMovie->genre }}</span>
-                <span class="text-white">{{ $featuredMovie->duration }} min</span>
-                <span class="text-warning">
-                    <i class="fas fa-star"></i>
-                    {{ number_format($featuredMovie->rating, 1) }}
-                </span>
+        <div class="container position-relative py-5" style="z-index:2;">
+            <div class="row align-items-center justify-content-center">
+                <div class="col-md-4 d-flex justify-content-center mb-4 mb-md-0">
+                    <img src="{{ $featuredMovie->poster }}" 
+                         alt="{{ $featuredMovie->title }}" 
+                         class="featured-poster shadow-lg rounded" 
+                         style="max-width: 350px; width: 100%; height: 520px; object-fit: cover; object-position: center; background: #222;">
+                </div>
+                <div class="col-md-8 text-center text-md-start text-white">
+                    <h1 class="display-4 fw-bold mb-3">{{ $featuredMovie->title }}</h1>
+                    <p class="lead mb-4">{{ $featuredMovie->synopsis }}</p>
+                    <div class="d-flex flex-wrap justify-content-center justify-content-md-start gap-3 mb-4">
+                        <span class="badge bg-primary">{{ $featuredMovie->genre }}</span>
+                        <span class="text-white">{{ $featuredMovie->duration }} min</span>
+                        <span class="text-warning">
+                            <i class="fas fa-star"></i>
+                            {{ number_format($featuredMovie->rating, 1) }}
+                        </span>
+                    </div>
+                    <a href="{{ route('movies.show', $featuredMovie) }}" class="btn btn-primary btn-lg">Book Now</a>
+                </div>
             </div>
-            <a href="{{ route('movies.show', $featuredMovie) }}" class="btn btn-primary btn-lg">Book Now</a>
         </div>
     </div>
     @endif
@@ -65,6 +74,8 @@
 .featured-movie {
     position: relative;
     overflow: hidden;
+    min-height: 600px;
+    background: #111;
 }
 
 .featured-overlay {
@@ -77,10 +88,23 @@
     z-index: 1;
 }
 
+.featured-poster {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    border-radius: 1rem;
+    background: #222;
+}
+
 .featured-content {
     z-index: 2;
     width: 80%;
     max-width: 800px;
+}
+
+@media (max-width: 767.98px) {
+    .featured-poster {
+        height: 350px !important;
+        max-width: 90vw;
+    }
 }
 
 .movie-card {

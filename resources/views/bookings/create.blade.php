@@ -15,9 +15,9 @@
                         </div>
                     @endif
 
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <img src="{{ $showtime->movie->poster }}" alt="{{ $showtime->movie->title }}" class="img-fluid rounded">
+                    <div class="row mb-4 align-items-center justify-content-center">
+                        <div class="col-md-4 d-flex justify-content-center mb-3 mb-md-0">
+                            <img src="{{ $showtime->movie->poster }}" alt="{{ $showtime->movie->title }}" class="booking-movie-poster shadow-lg rounded" style="max-width: 220px; width: 100%; height: 320px; object-fit: cover; object-position: center; background: #222;">
                         </div>
                         <div class="col-md-8">
                             <h5 class="card-title">{{ $showtime->movie->title }}</h5>
@@ -64,12 +64,13 @@
     </div>
 </div>
 
+@php $jsPrice = json_encode($showtime->price); @endphp
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const ticketInput = document.getElementById('number_of_tickets');
     const totalAmountSpan = document.getElementById('total-amount');
-    const pricePerTicket = {{ $showtime->price }};
+    const pricePerTicket = parseFloat("{{ $showtime->price }}");
 
     ticketInput.addEventListener('input', function() {
         const numberOfTickets = parseInt(this.value) || 0;
@@ -79,4 +80,21 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
+
+@endsection
+
+@section('styles')
+<style>
+.booking-movie-poster {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    border-radius: 1rem;
+    background: #222;
+}
+@media (max-width: 767.98px) {
+    .booking-movie-poster {
+        height: 180px !important;
+        max-width: 90vw;
+    }
+}
+</style>
 @endsection 

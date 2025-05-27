@@ -52,10 +52,20 @@
                             <i class="fas fa-arrow-left me-2"></i>
                             Back to Movies
                         </a>
-                        <button class="btn btn-primary">
-                            <i class="fas fa-ticket-alt me-2"></i>
-                            Book Tickets
-                        </button>
+                        @php
+                            $firstShowtime = $movie->showtimes->first();
+                        @endphp
+                        @if($firstShowtime)
+                            <a href="{{ route('bookings.create', $firstShowtime) }}" class="btn btn-primary">
+                                <i class="fas fa-ticket-alt me-2"></i>
+                                Book Tickets
+                            </a>
+                        @else
+                            <button class="btn btn-primary" disabled>
+                                <i class="fas fa-ticket-alt me-2"></i>
+                                Book Tickets
+                            </button>
+                        @endif
                     </div>
                 </div>
             </div>
